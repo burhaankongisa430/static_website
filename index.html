@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HyperionDev JSON and Web Storage APIs task</title>
+
+  <!-- Bootstrap CSS -->
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+    integrity="sha384-QWTKZyjpPEjISvSMaRU9OFaRp6k9MhJt9.5YhBx8jXh8mYjMhJY6h+ALEWIH"
+    crossorigin="anonymous"
+  />
+
+  <!-- Custom CSS -->
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8f9fa; padding-top: 20px; }
+    .navbar-brand { font-weight: bold; font-size: 1.1rem; }
+    .product-card { border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; margin-bottom: 20px; transition: transform 0.3s, box-shadow 0.3s; background-color: white; height: 100%; }
+    .product-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+    .product-img { height: 180px; object-fit: contain; padding: 15px; background-color: #f9f9f9; transition: transform 0.5s; }
+    .product-card:hover .product-img { transform: scale(1.05); }
+    .product-title { font-weight: 600; color: #2c3e50; margin-bottom: 5px; }
+    .product-price { color: #e74c3c; font-weight: bold; font-size: 1.05rem; }
+    .btn-buy { background-color: #27ae60; border-color: #27ae60; font-weight: 600; width: 100%; }
+    .btn-buy:hover { background-color: #219653; border-color: #219653; }
+
+    .page-header { background-color: #27ae60; color: white; padding: 18px 0; border-radius: 8px; margin-bottom: 20px; }
+    .brand-highlight { color: #27ae60; font-weight: bold; }
+
+    .footer { background-color: #2c3e50; color: #ecf0f1; padding: 30px 0; margin-top: 40px; }
+    .footer-logo { font-size: 1.4rem; font-weight: bold; color: #27ae60; }
+
+    /* Cart UI */
+    .cart-card { border: 1px solid #e0e0e0; border-radius: 10px; background: #fff; }
+    .cart-empty { color: #6c757d; }
+    .badge-soft { background: rgba(39,174,96,0.12); color: #1f7a45; border: 1px solid rgba(39,174,96,0.25); }
+    .small-muted { font-size: 0.9rem; color: #6c757d; }
+  </style>
+</head>
+
+<body>
+  <!-- Navigation -->
+  <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+    <div class="container">
+      <a class="navbar-brand brand-highlight" href="#">Burhaan Mziwake Kongisa | JSON and Web Storage APIs Task</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item"><a class="nav-link active" href="#">Home</a></li>
+          <li class="nav-item"><a class="nav-link" href="#products">Products</a></li>
+          <li class="nav-item"><a class="nav-link" href="#cart">Cart</a></li>
+          <li class="nav-item"><a class="nav-link" href="#contact">Contact</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container">
+    <!-- Page Header -->
+    <div class="page-header text-center mt-3">
+      <h1 class="mb-1">Essential Supplements For Runners</h1>
+      <p class="lead mb-0">Premium supplements for your running journey</p>
+    </div>
+
+    <!-- Username cookie + font preference sessionStorage -->
+    <div class="row g-3 align-items-stretch mb-3">
+      <div class="col-lg-8">
+        <div class="p-3 cart-card h-100">
+          <div class="d-flex justify-content-between flex-wrap gap-2 align-items-center">
+            <div>
+              <div id="greeting" class="fw-semibold">Welcome!</div>
+              <div class="small-muted">Login name is stored in a cookie so it persists across sessions.</div>
+            </div>
+            <div class="d-flex gap-2 flex-wrap">
+              <input id="usernameInput" class="form-control" style="max-width: 220px;" type="text" placeholder="Enter your name" />
+              <button id="saveUsernameBtn" class="btn btn-success">Save Name</button>
+            </div>
+          </div>
+
+          <hr />
+
+          <div class="row g-2 align-items-center">
+            <div class="col-md-6">
+              <label for="fontSelect" class="form-label fw-semibold mb-1">Font preference (session only)</label>
+              <select id="fontSelect" class="form-select">
+                <option value="">Default (Segoe UI)</option>
+                <option value="Arial, sans-serif">Arial</option>
+                <option value="'Times New Roman', Times, serif">Times New Roman</option>
+                <option value="Verdana, sans-serif">Verdana</option>
+                <option value="'Courier New', Courier, monospace">Courier New</option>
+              </select>
+              <div class="small-muted mt-1">Saved in <code>sessionStorage</code> and cleared when the tab/browser closes.</div>
+            </div>
+
+            <div class="col-md-6">
+              <label for="currencySelect" class="form-label fw-semibold mb-1">Currency preference (cookie)</label>
+              <select id="currencySelect" class="form-select">
+                <option value="ZAR">ZAR (R)</option>
+                <option value="USD">USD ($)</option>
+                <option value="EUR">EUR (€)</option>
+                <option value="GBP">GBP (£)</option>
+              </select>
+              <div class="small-muted mt-1">Saved in a cookie to personalize price display.</div>
+            </div>
+          </div>
+
+          <div class="mt-3 d-flex align-items-center gap-2 flex-wrap">
+            <span class="badge badge-soft px-3 py-2" id="cacheIndicator" style="display:none;">Using cached assets for faster loading</span>
+            <span class="small-muted" id="cacheStatusText"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cart Summary (WITH THUMBNAILS) -->
+      <div class="col-lg-4" id="cart">
+        <div class="p-3 cart-card h-100">
+          <div class="d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">Shopping Cart</h4>
+            <span class="badge text-bg-secondary" id="cartCountBadge">0 items</span>
+          </div>
+
+          <div class="mt-3" id="cartItems">
+            <p class="cart-empty mb-0">Your cart is empty.</p>
+          </div>
+
+          <hr />
+
+          <div class="d-flex justify-content-between align-items-center">
+            <div class="fw-semibold">Total:</div>
+            <div class="fw-bold" id="cartTotal">R0.00</div>
+          </div>
+
+          <div class="mt-3 d-grid gap-2">
+            <button id="clearCartBtn" class="btn btn-outline-danger">Clear Cart</button>
+            <button id="resetAllBtn" class="btn btn-outline-secondary">Reset Preferences</button>
+          </div>
+
+          <div class="small-muted mt-2">
+            Cart is stored in <code>localStorage</code> so it persists after refresh/closing the browser.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Products Grid -->
+    <div class="row" id="products">
+      <div class="col-lg-3 col-md-4 col-sm-6">
+        <div class="product-card" data-id="ashwagandha" data-name="Ashwagandha Capsules" data-price="200" data-image="AshwagandhaCapsules.webp">
+          <img src="AshwagandhaCapsules.webp" alt="Ashwagandha Capsules" class="product-img img-fluid">
+          <div class="p-3">
+            <h5 class="product-title">Ashwagandha Capsules</h5>
+            <p class="text-muted small">Stress relief, adaptogen, sports performance</p>
+            <div class="d-flex justify-content-between align-items-center">
+              <span class="product-price price-display" data-base="200">R200</span>
+              <button class="btn btn-buy btn-sm add-to-cart">Add to Cart</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-3 col-md-4 col-sm-6">
+        <div class="product-card" data-id="sleepy" data-name="Sleepy Caps" data-price="200" data-image="SleepyCaps.webp">
+          <img src="SleepyCaps.webp" alt="Sleepy Caps" class="product-img img-fluid">
+          <div class="p-3">
+            <h5 class="product-title">Sleepy Caps</h5>
+            <p class="text-muted small">Natural sleep aid and relaxation support</p>
+            <div class="d-flex justify-content-between align-items-center">
+              <span class="product-price price-display" data-base="200">R200</span>
+              <button class="btn btn-buy btn-sm add-to-cart">Add to Cart</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-3 col-md-4 col-sm-6">
+        <div class="product-card" data-id="tongkat" data-name="Tongkat Ali" data-price="200" data-image="TongatAli.png">
+          <img src="TongatAli.png" alt="Tongkat Ali" class="product-img img-fluid">
+          <div class="p-3">
+            <h5 class="product-title">Tongkat Ali</h5>
+            <p class="text-muted small">Testosterone booster, hormone balance</p>
+            <div class="d-flex justify-content-between align-items-center">
+              <span class="product-price price-display" data-base="200">R200</span>
+              <button class="btn btn-buy btn-sm add-to-cart">Add to Cart</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-3 col-md-4 col-sm-6">
+        <div class="product-card" data-id="kratom" data-name="White Kratom" data-price="200" data-image="WhiteKratomCapsules.webp">
+          <img src="WhiteKratomCapsules.webp" alt="White Kratom" class="product-img img-fluid">
+          <div class="p-3">
+            <h5 class="product-title">White Kratom</h5>
+            <p class="text-muted small">Energy, focus, and performance enhancement</p>
+            <div class="d-flex justify-content-between align-items-center">
+              <span class="product-price price-display" data-base="200">R200</span>
+              <button class="btn btn-buy btn-sm add-to-cart">Add to Cart</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-3 col-md-4 col-sm-6">
+        <div class="product-card" data-id="creatine" data-name="USN Creatine 3-in-1" data-price="200" data-image="usn-creatine-3-in-1.webp">
+          <img src="usn-creatine-3-in-1.webp" alt="USN Creatine 3-in-1" class="product-img img-fluid">
+          <div class="p-3">
+            <h5 class="product-title">USN Creatine 3-in-1</h5>
+            <p class="text-muted small">Creatine monohydrate with amino acids</p>
+            <div class="d-flex justify-content-between align-items-center">
+              <span class="product-price price-display" data-base="200">R200</span>
+              <button class="btn btn-buy btn-sm add-to-cart">Add to Cart</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-3 col-md-4 col-sm-6">
+        <div class="product-card" data-id="whey" data-name="USN Hydrotech Whey" data-price="200" data-image="usn-hydrotech-whey.webp">
+          <img src="usn-hydrotech-whey.webp" alt="USN Hydrotech Whey" class="product-img img-fluid">
+          <div class="p-3">
+            <h5 class="product-title">USN Hydrotech Whey</h5>
+            <p class="text-muted small">40g protein, vanilla cookie dough flavor</p>
+            <div class="d-flex justify-content-between align-items-center">
+              <span class="product-price price-display" data-base="200">R200</span>
+              <button class="btn btn-buy btn-sm add-to-cart">Add to Cart</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-3 col-md-4 col-sm-6">
+        <div class="product-card" data-id="collagen" data-name="USN Pure Collagen" data-price="200" data-image="usn-pure-collagen.webp">
+          <img src="usn-pure-collagen.webp" alt="USN Pure Collagen" class="product-img img-fluid">
+          <div class="p-3">
+            <h5 class="product-title">USN Pure Collagen</h5>
+            <p class="text-muted small">Type 1 hydrolyzed collagen peptides</p>
+            <div class="d-flex justify-content-between align-items-center">
+              <span class="product-price price-display" data-base="200">R200</span>
+              <button class="btn btn-buy btn-sm add-to-cart">Add to Cart</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-3 col-md-4 col-sm-6">
+        <div class="product-card" data-id="vo2" data-name="USN VO2 Max" data-price="200" data-image="usn-vo2-max.webp">
+          <img src="usn-vo2-max.webp" alt="USN VO2 Max" class="product-img img-fluid">
+          <div class="p-3">
+            <h5 class="product-title">USN VO2 Max</h5>
+            <p class="text-muted small">Maximize oxygen consumption & endurance</p>
+            <div class="d-flex justify-content-between align-items-center">
+              <span class="product-price price-display" data-base="200">R200</span>
+              <button class="btn btn-buy btn-sm add-to-cart">Add to Cart</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-3 col-md-4 col-sm-6">
+        <div class="product-card" data-id="winners" data-name="USN Winners Energy" data-price="200" data-image="usn-winners-energy.webp">
+          <img src="usn-winners-energy.webp" alt="USN Winners Energy" class="product-img img-fluid">
+          <div class="p-3">
+            <h5 class="product-title">USN Winners Energy</h5>
+            <p class="text-muted small">Sports hydration drink with electrolytes</p>
+            <div class="d-flex justify-content-between align-items-center">
+              <span class="product-price price-display" data-base="200">R200</span>
+              <button class="btn btn-buy btn-sm add-to-cart">Add to Cart</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-3 col-md-4 col-sm-6">
+        <div class="product-card" data-id="cramp" data-name="USN Cramp Block" data-price="200" data-image="usn-cramp-block.webp">
+          <img src="usn-cramp-block.webp" alt="USN Cramp Block" class="product-img img-fluid">
+          <div class="p-3">
+            <h5 class="product-title">USN Cramp Block</h5>
+            <p class="text-muted small">Muscle cramp relief formula</p>
+            <div class="d-flex justify-content-between align-items-center">
+              <span class="product-price price-display" data-base="200">R200</span>
+              <button class="btn btn-buy btn-sm add-to-cart">Add to Cart</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer with Contact Form -->
+  <footer class="footer" id="contact">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-4 mb-4">
+          <div class="footer-logo mb-3">Burhaan Mziwake Kongisa | JSON and Web Storage APIs Task</div>
+          <p>Providing an example website of premium running supplements.</p>
+          <p class="mt-3"><strong>Contact:</strong> info@hyperiondevtasks.co.za</p>
+          <p><strong>Phone:</strong> +27 21 123 4567</p>
+        </div>
+
+        <div class="col-md-8">
+          <h4 class="mb-4">Get in Touch</h4>
+          <form class="row g-3">
+            <div class="col-md-6">
+              <label for="firstName" class="form-label">First Name</label>
+              <input type="text" class="form-control" id="firstName" placeholder="Your first name">
+            </div>
+            <div class="col-md-6">
+              <label for="lastName" class="form-label">Last Name</label>
+              <input type="text" class="form-control" id="lastName" placeholder="Your last name">
+            </div>
+            <div class="col-md-6">
+              <label for="email" class="form-label">Email</label>
+              <input type="email" class="form-control" id="email" placeholder="your.email@example.com">
+            </div>
+            <div class="col-md-6">
+              <label for="phone" class="form-label">Phone</label>
+              <input type="tel" class="form-control" id="phone" placeholder="+27 12 345 6789">
+            </div>
+            <div class="col-12">
+              <label for="message" class="form-label">Message</label>
+              <textarea class="form-control" id="message" rows="3" placeholder="Your message..."></textarea>
+            </div>
+            <div class="col-12">
+              <button type="submit" class="btn btn-success">Submit Inquiry</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <hr class="mt-4 mb-4" style="border-color: #4a6572;">
+
+      <div class="row">
+        <div class="col-md-12 text-center">
+          <p class="mb-0">&copy; 2026 HyperionDev Tasks. All rights reserved. | example@email.com</p>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Bootstrap JavaScript Bundle -->
+  <script
+    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-YvpcrYF0CtYXN1j5vDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+    crossorigin="anonymous"
+  ></script>
+
+  <!-- Practical Task JS -->
+  <script>
+    /***********************
+     * Helpers (Cookies)
+     ***********************/
+    function setCookie(name, value, days) {
+      const expires = days
+        ? "; expires=" + new Date(Date.now() + days * 864e5).toUTCString()
+        : "";
+      document.cookie = name + "=" + encodeURIComponent(value) + expires + "; path=/";
+    }
+
+    function getCookie(name) {
+      const cookies = document.cookie.split("; ").filter(Boolean);
+      for (const c of cookies) {
+        const [k, v] = c.split("=");
+        if (k === name) return decodeURIComponent(v || "");
+      }
+      return "";
+    }
+
+    function deleteCookie(name) {
+      document.cookie = name + "=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/";
+    }
+
+    /***********************
+     * localStorage Cart (persistent)
+     ***********************/
+    const CART_KEY = "cartData_v1";
+    function loadCart() {
+      try { return JSON.parse(localStorage.getItem(CART_KEY)) || {}; }
+      catch { return {}; }
+    }
+    function saveCart(cart) { localStorage.setItem(CART_KEY, JSON.stringify(cart)); }
+
+    function addToCart(product) {
+      const cart = loadCart();
+      if (!cart[product.id]) cart[product.id] = { ...product, qty: 1 };
+      else cart[product.id].qty += 1;
+      saveCart(cart);
+      renderCart();
+    }
+
+    function decrementItem(productId) {
+      const cart = loadCart();
+      if (!cart[productId]) return;
+      cart[productId].qty -= 1;
+      if (cart[productId].qty <= 0) delete cart[productId];
+      saveCart(cart);
+      renderCart();
+    }
+
+    function removeItem(productId) {
+      const cart = loadCart();
+      delete cart[productId];
+      saveCart(cart);
+      renderCart();
+    }
+
+    function clearCart() {
+      localStorage.removeItem(CART_KEY);
+      renderCart();
+    }
+
+    /***********************
+     * Currency helpers
+     ***********************/
+    function getCurrency() { return getCookie("currency") || "ZAR"; }
+
+    function convertFromZar(zar, currency) {
+      const rates = { ZAR: 1, USD: 0.055, EUR: 0.05, GBP: 0.043 };
+      return zar * (rates[currency] || 1);
+    }
+
+    function currencySymbol(currency) {
+      return currency === "USD" ? "$" :
+             currency === "EUR" ? "€" :
+             currency === "GBP" ? "£" : "R";
+    }
+
+    function formatMoney(amount, currency) { return currencySymbol(currency) + amount.toFixed(2); }
+
+    /***********************
+     * Cart Rendering (WITH THUMBNAILS)
+     ***********************/
+    function renderCart() {
+      const cart = loadCart();
+      const cartItemsEl = document.getElementById("cartItems");
+      const cartTotalEl = document.getElementById("cartTotal");
+      const cartCountBadge = document.getElementById("cartCountBadge");
+
+      const items = Object.values(cart);
+      const currency = getCurrency();
+
+      if (items.length === 0) {
+        cartItemsEl.innerHTML = '<p class="cart-empty mb-0">Your cart is empty.</p>';
+        cartTotalEl.textContent = formatMoney(0, currency);
+        cartCountBadge.textContent = "0 items";
+        return;
+      }
+
+      let totalQty = 0;
+      let totalZar = 0;
+
+      const html = items.map(item => {
+        totalQty += item.qty;
+        totalZar += item.price * item.qty;
+
+        const lineConverted = convertFromZar(item.price * item.qty, currency);
+
+        return `
+          <div class="border rounded p-2 mb-2">
+            <div class="d-flex gap-2">
+              <img
+                src="${item.image}"
+                alt="${item.name}"
+                onerror="this.style.display='none'"
+                style="width:64px;height:64px;object-fit:contain;background:#f8f9fa;border:1px solid #e9ecef;border-radius:8px;padding:6px;"
+              />
+              <div class="flex-grow-1">
+                <div class="d-flex justify-content-between align-items-start gap-2">
+                  <div>
+                    <div class="fw-semibold">${item.name}</div>
+                    <div class="small-muted">Qty: ${item.qty}</div>
+                    <div class="small-muted">
+                      Line: <span class="fw-semibold">${formatMoney(lineConverted, currency)}</span>
+                    </div>
+                  </div>
+
+                  <div class="d-flex flex-column gap-1" style="min-width: 120px;">
+                    <button class="btn btn-sm btn-outline-success" data-action="inc" data-id="${item.id}">+ Add</button>
+                    <button class="btn btn-sm btn-outline-warning" data-action="dec" data-id="${item.id}">- Remove 1</button>
+                    <button class="btn btn-sm btn-outline-danger" data-action="del" data-id="${item.id}">Delete</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join("");
+
+      cartItemsEl.innerHTML = html;
+
+      const totalConverted = convertFromZar(totalZar, currency);
+      cartTotalEl.textContent = formatMoney(totalConverted, currency);
+      cartCountBadge.textContent = `${totalQty} item${totalQty === 1 ? "" : "s"}`;
+    }
+
+    /***********************
+     * sessionStorage Font preference
+     ***********************/
+    const FONT_KEY = "fontPreference_v1";
+    function applyFontFromSession() {
+      const font = sessionStorage.getItem(FONT_KEY);
+      if (font) document.body.style.fontFamily = font;
+      const fontSelect = document.getElementById("fontSelect");
+      fontSelect.value = font || "";
+    }
+
+    /***********************
+     * Username in cookies + greeting
+     ***********************/
+    function renderGreeting() {
+      const name = getCookie("username");
+      const greetingEl = document.getElementById("greeting");
+      greetingEl.textContent = name ? `Welcome back, ${name}!` : "Welcome! (Set your name to be greeted next time.)";
+    }
+
+    /***********************
+     * Caching indicator
+     ***********************/
+    async function updateCacheIndicator() {
+      const badge = document.getElementById("cacheIndicator");
+      const txt = document.getElementById("cacheStatusText");
+
+      try {
+        if ("serviceWorker" in navigator && navigator.serviceWorker.controller) {
+          badge.style.display = "inline-block";
+          txt.textContent = "Service Worker is controlling this page.";
+          return;
+        }
+
+        if ("caches" in window) {
+          const match = await caches.match("AshwagandhaCapsules.webp");
+          if (match) {
+            badge.style.display = "inline-block";
+            txt.textContent = "Browser cache has product assets available.";
+            return;
+          }
+        }
+
+        badge.style.display = "none";
+        txt.textContent = "";
+      } catch {
+        badge.style.display = "none";
+        txt.textContent = "";
+      }
+    }
+
+    /***********************
+     * Currency UI
+     ***********************/
+    function applyCurrencyUI() {
+      const currencySelect = document.getElementById("currencySelect");
+      const current = getCurrency();
+      currencySelect.value = current;
+
+      document.querySelectorAll(".price-display").forEach(el => {
+        const baseZar = parseFloat(el.dataset.base || "0");
+        const converted = convertFromZar(baseZar, current);
+        el.textContent = formatMoney(converted, current);
+      });
+
+      renderCart();
+    }
+
+    /***********************
+     * Wire up UI events
+     ***********************/
+    document.addEventListener("DOMContentLoaded", async () => {
+      renderGreeting();
+      applyFontFromSession();
+      applyCurrencyUI();
+      renderCart();
+
+      document.getElementById("saveUsernameBtn").addEventListener("click", () => {
+        const val = document.getElementById("usernameInput").value.trim();
+        if (!val) return alert("Please enter a name first.");
+        setCookie("username", val, 365);
+        document.getElementById("usernameInput").value = "";
+        renderGreeting();
+      });
+
+      document.getElementById("fontSelect").addEventListener("change", (e) => {
+        const font = e.target.value;
+        if (font) {
+          sessionStorage.setItem(FONT_KEY, font);
+          document.body.style.fontFamily = font;
+        } else {
+          sessionStorage.removeItem(FONT_KEY);
+          document.body.style.fontFamily = "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
+        }
+      });
+
+      document.getElementById("currencySelect").addEventListener("change", (e) => {
+        setCookie("currency", e.target.value, 365);
+        applyCurrencyUI();
+      });
+
+      document.querySelectorAll(".add-to-cart").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+          const card = e.target.closest(".product-card");
+          const product = {
+            id: card.dataset.id,
+            name: card.dataset.name,
+            price: parseFloat(card.dataset.price),
+            image: card.dataset.image
+          };
+          addToCart(product);
+        });
+      });
+
+      document.getElementById("cartItems").addEventListener("click", (e) => {
+        const btn = e.target.closest("button[data-action]");
+        if (!btn) return;
+        const id = btn.dataset.id;
+        const action = btn.dataset.action;
+
+        if (action === "inc") {
+          const cart = loadCart();
+          if (cart[id]) addToCart(cart[id]);
+        } else if (action === "dec") {
+          decrementItem(id);
+        } else if (action === "del") {
+          removeItem(id);
+        }
+      });
+
+      document.getElementById("clearCartBtn").addEventListener("click", () => clearCart());
+
+      document.getElementById("resetAllBtn").addEventListener("click", () => {
+        clearCart();
+        sessionStorage.removeItem(FONT_KEY);
+        deleteCookie("username");
+        deleteCookie("currency");
+
+        document.body.style.fontFamily = "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
+        document.getElementById("fontSelect").value = "";
+        document.getElementById("currencySelect").value = "ZAR";
+
+        renderGreeting();
+        applyCurrencyUI();
+        alert("Cart cleared and preferences reset.");
+      });
+
+      document.querySelectorAll(".product-img").forEach(img => {
+        img.addEventListener("mouseenter", function() { this.style.filter = "brightness(1.1)"; });
+        img.addEventListener("mouseleave", function() { this.style.filter = "brightness(1)"; });
+      });
+
+      if ("serviceWorker" in navigator) {
+        try { await navigator.serviceWorker.register("./service-worker.js"); }
+        catch (err) { console.warn("Service Worker registration failed:", err); }
+      }
+
+      await updateCacheIndicator();
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.addEventListener("controllerchange", updateCacheIndicator);
+      }
+    });
+  </script>
+</body>
+</html>
